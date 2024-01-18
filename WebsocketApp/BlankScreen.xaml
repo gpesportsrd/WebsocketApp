@@ -1,0 +1,77 @@
+﻿<Window x:Class="WebsocketApp.BlankScreen"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:WebsocketApp"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="BlankScreen">
+
+    <Window.Resources>
+        <Style x:Key="RouteButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#4559a480"/>
+            <Setter Property="FontFamily" Value="Noto Sans Light"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="10 5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="15">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="LightGray"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="DarkGray"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="#FFC3C3C3">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Row for Nickname -->
+            <RowDefinition Height="Auto" MinHeight="1"/>
+            <!-- Row for ID -->
+            <RowDefinition/>
+            <!-- Row for txtLogs -->
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="txbWriteNickname" HorizontalAlignment="Left" Margin="30,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" Width="230" Height="26" FontFamily="Noto Sans Lisu"><Run FontSize="20" Text="Nickname:"/></TextBlock>
+        <TextBlock x:Name="txbWriteId" HorizontalAlignment="Left" Margin="238,35,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="14" Width="332" Height="26" FontFamily="Noto Sans Light"><Run FontSize="20" Text="ID:"/></TextBlock>
+
+        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,35,85,0" Width="174" Height="30" >
+            <Button Content="Editar Información" Click="EditarInformacion_Click" Height="30" Width="150" FontSize="14" FontFamily="Noto Sans Light" FontWeight="Bold" Background="#FF8C8C8C" Style="{StaticResource RouteButtonStyle}" Cursor="Hand" />
+        </StackPanel>
+
+        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,35,25,0" Width="50" Height="30" >
+            <Button Content="F5" Height="30" Width="50" FontSize="14" FontFamily="Noto Sans Light" FontWeight="Bold" Background="#FF8C8C8C" Style="{StaticResource RouteButtonStyle}" Click="Button_Click" Cursor="Hand" />
+        </StackPanel>
+
+
+        <RichTextBox x:Name="txtLogs" Grid.Row="2" Margin="0,30,0,0" Background="Black" BorderThickness="2,2,2,2"
+                     VerticalScrollBarVisibility="Auto" IsReadOnly="True">
+            <RichTextBox.Resources>
+                <Style TargetType="ScrollBar">
+                    <Setter Property="Background" Value="Black"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Width" Value="10"/>
+                </Style>
+            </RichTextBox.Resources>
+            <FlowDocument>
+                <Paragraph></Paragraph>
+            </FlowDocument>
+        </RichTextBox>
+    </Grid>
+</Window>
