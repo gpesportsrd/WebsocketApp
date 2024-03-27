@@ -10,6 +10,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="7.0.10" />
+    <PackageReference Include="SocketIO4Net.Client" Version="0.6.26" />
+    <PackageReference Include="SocketIoClientDotNet" Version="0.9.13" />
   </ItemGroup>
 
   <ItemGroup>

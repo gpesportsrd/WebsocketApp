@@ -241,7 +241,7 @@ namespace WebsocketApp
 
         private void btnSelectRouteKey_Click(object sender, RoutedEventArgs e)
         {
-            RouteInfo routeInfo = SelectAndSaveRoute("Key Press");
+            RouteInfo routeInfo = SelectAndSaveRoute("GarySwallowF12023RealNames");
             if (!string.IsNullOrEmpty(routeInfo.Path))
             {
                 selectedPathKey = routeInfo.Path;
@@ -252,7 +252,7 @@ namespace WebsocketApp
 
         private void btnSelectRouteCars_Click(object sender, RoutedEventArgs e)
         {
-            RouteInfo routeInfo = SelectAndSaveRoute("Cars");
+            RouteInfo routeInfo = SelectAndSaveRoute("RaceResultsStandings");
             if (!string.IsNullOrEmpty(routeInfo.Path))
             {
                 selectedPathCars = routeInfo.Path;
@@ -263,7 +263,7 @@ namespace WebsocketApp
 
         private void btnSelectRouteDrivers_Click(object sender, RoutedEventArgs e)
         {
-            RouteInfo routeInfo = SelectAndSaveRoute("Drivers");
+            RouteInfo routeInfo = SelectAndSaveRoute("ChampionshipStandings");
             if (!string.IsNullOrEmpty(routeInfo.Path))
             {
                 selectedPathDrivers = routeInfo.Path;

@@ -1,30 +1,38 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using System;
 using System.Text.Json;
-using System.Windows.Controls;
 using System.Xml;
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
-using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
-using static WebsocketApp.BlankScreen;
 using System.Windows.Threading;
+using Quobject.SocketIoClientDotNet.Client;
+using System.Collections.Immutable;
+using Socket = Quobject.SocketIoClientDotNet.Client.Socket;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Net.Http;
+using System.Xml.Linq;
+using System.Reflection.PortableExecutable;
+using System.Text.Json.Nodes;
+using System.Linq;
 
 namespace WebsocketApp
 {
     public partial class BlankScreen : Window
     {
+        public bool _connected = false;
+        private Socket _instance;
+
         public class StoragePaths
         {
             public string KeysFolderPath { get; set; }
-            public string KeyFileName { get; set; } // Nombres de archivos en la carpeta de claves
+            public string KeyFileName { get; set; }
             public string DriversFolderPath { get; set; }
-            public string DriverFileName { get; set; } // Nombres de archivos en la carpeta de conductores
+            public string DriverFileName { get; set; }
             public string CarsFolderPath { get; set; }
-            public string CarFileName { get; set; } // Nombres de archivos en la carpeta de autos
+            public string CarFileName { get; set; }
         }
 
         private StoragePaths storagePaths;
@@ -37,19 +45,10 @@ namespace WebsocketApp
 
             InitializeSignalRConnection();
 
+
             LoadAndDisplayUserData();
 
             storagePaths = LoadStorageFolderPath();
-
-            hubConnection = new HubConnectionBuilder()
-                .WithUrl("https://localhost:7231/chatHub")
-                .Build();
-
-            hubConnectionOne = new HubConnectionBuilder()
-                .WithUrl("https://localhost:7231/jsonHub")
-                .Build();
-
-            StartHubConnectionAsync();
         }
 
 
@@ -130,36 +129,214 @@ namespace WebsocketApp
                     {
                         using (StreamWriter writer = new StreamWriter(Path.Combine(storagePaths.DriversFolderPath, $"{storagePaths.DriverFileName}.txt")))
                         {
-                            writer.WriteLine("##;Name;Nationality;Team;Points");
+                            writer.WriteLine("##;Name;Nationality;Individual Id;Points");
 
                             foreach (JsonElement jsonObject in jsonInformation.EnumerateArray())
                             {
                                 int number = jsonObject.GetProperty("number").GetInt32();
-                                string name = jsonObject.GetProperty("name").GetString();
-                                string nationality = jsonObject.GetProperty("nationality").GetString();
-                                int points = jsonObject.GetProperty("points").GetInt32();
-                                string team = "";
+                                string name = jsonObject.GetProperty("first_name").GetString() + " " + jsonObject.GetProperty("last_name").GetString();
+                                int individual_id = jsonObject.GetProperty("individual_id").GetInt32();
+                                int points = jsonObject.GetProperty("total_points").GetInt32();
 
-                                string line = $"{number};{name};{nationality};{team};{points}";
+                                string line = $"{number};{name};{individual_id};{points}";
                                 writer.WriteLine(line);
                             }
                         }
-
-                        AddLog("", $"JSON array saved to {Path.Combine(storagePaths.DriversFolderPath, $"{storagePaths.DriverFileName}.txt")}", "");
+                        Dispatcher.Invoke(() =>
+                        {
+                            AddLog("", $"JSON array saved to {Path.Combine(storagePaths.DriversFolderPath, $"{storagePaths.DriverFileName}.txt")}", "");
+                        });
+                        
                     }
                     else
                     {
-                        AddLog("", "", "JSON information is not an array.");
+                        Dispatcher.Invoke(() =>
+                        {
+                            AddLog("", "", "JSON information is not an array.");
+                        });
+                        
                     }
                 }
                 catch (Exception ex)
                 {
-                    AddLog("", "", $"Error saving JSON to file: {ex.Message}");
+                    Dispatcher.Invoke(() =>
+                    {
+                        AddLog("", "", $"Error saving JSON to file: {ex.Message}");
+                    });
+                    
                 }
             }
             else
             {
+                Dispatcher.Invoke(() =>
+                {
+                    // AddLog("", $"JSON array saved to {Path.Combine(storagePaths.CarsFolderPath, $"{storagePaths.CarFileName}.txt")}", "");
+                });
                 AddLog("", "", "Storage folder path is not specified.");
+            }
+        }
+
+        private void SaveParticipant(JsonElement participant)
+        {
+            if (!string.IsNullOrEmpty(storagePaths.DriversFolderPath))
+            {
+                try
+                {
+                    string sourceFilePath = Path.Combine(storagePaths.KeysFolderPath, $"{storagePaths.KeyFileName}.txt");
+                    string tempFilePath = Path.Combine(storagePaths.KeysFolderPath, $"{storagePaths.KeyFileName}_temp.txt");
+
+                    using (StreamWriter writer = new StreamWriter(tempFilePath))
+                    {
+                        int participant_id = participant.GetProperty("id").GetInt32();
+                        int individual_id = participant.GetProperty("individual_id").GetInt32();
+                        string eagame = participant.GetProperty("nickname").GetString();
+                        string name = $"{participant.GetProperty("first_name").GetString()} {participant.GetProperty("last_name").GetString()}";
+
+                        if (string.IsNullOrEmpty(eagame))
+                        {
+                            string errorMessage = $"Error: Participant with id {participant_id} and individual id {individual_id} has Eagame as null. Name: {name}";
+                            Dispatcher.Invoke(() =>
+                            {
+                                AddLog("", "", errorMessage);
+                            });
+                        }
+                        else
+                        {
+                            bool participantUpdated = false;
+
+                            using (StreamReader reader = new StreamReader(sourceFilePath))
+                            {
+                                string line;
+
+                                while ((line = reader.ReadLine()) != null)
+                                {
+                                    string[] parts = line.Split(';');
+                                    string existingEagame = parts[0].Trim();
+
+                                    if (existingEagame == eagame)
+                                    {
+                                        writer.WriteLine($"{eagame};{name}");
+                                        participantUpdated = true;
+                                    }
+                                    else
+                                    {
+                                        writer.WriteLine(line);
+                                    }
+                                }
+                            }
+
+                            if (!participantUpdated)
+                            {
+                                writer.WriteLine($"{eagame};{name}");
+                            }
+                        }
+
+                        Dispatcher.Invoke(() =>
+                        {
+                            AddLog("", $"JSON object saved to {sourceFilePath}", "");
+                        });
+                    }
+
+                    File.Delete(sourceFilePath);
+                    File.Move(tempFilePath, sourceFilePath);
+                }
+                catch (Exception ex)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        AddLog("", "", $"Error saving JSON to file: {ex.Message}");
+                    });
+                }
+            }
+            else
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    AddLog("", "", "Storage folder path is not specified.");
+                });
+            }
+        }
+
+        private void SaveFinalClassification(JsonElement finalClassification)
+        {
+            if (!string.IsNullOrEmpty(storagePaths.DriversFolderPath))
+            {
+                try
+                {
+                    if (finalClassification.ValueKind == JsonValueKind.Array)
+                    {
+
+                        using (StreamWriter writer = new StreamWriter(Path.Combine(storagePaths.CarsFolderPath, $"{storagePaths.CarFileName}.txt")))
+                        {
+                            JsonElement firstElement = finalClassification.EnumerateArray().First();
+                            if (firstElement.TryGetProperty("udp_session_type", out JsonElement udpSessionType))
+                            {
+                                string sessionType = udpSessionType.GetString();
+                                if (sessionType == "1" || sessionType == "2" || sessionType == "3" || sessionType == "4" || sessionType == "5" || sessionType == "6" || sessionType == "7" || sessionType == "8")
+                                {
+                                    writer.WriteLine("Vehicle Name;Best Lap Time In MS;Team Id");
+                                }
+                                else
+                                {
+                                    writer.WriteLine("Vehicle Name;Total Race Time / Best Lap Time In MS;Team Id");
+                                }
+                            }
+
+
+                            foreach (JsonElement jsonObject in finalClassification.EnumerateArray())
+                            {
+                                if (jsonObject.TryGetProperty("vehicleName", out JsonElement vehicleName) &&
+                                    jsonObject.TryGetProperty("m_bestLapTimeInMS", out JsonElement bestLapTime) &&
+                                    jsonObject.TryGetProperty("m_totalRaceTime", out JsonElement totalRaceTime) &&
+                                    jsonObject.TryGetProperty("teamId", out JsonElement teamId))
+                                {
+                                    string vehicle_name = vehicleName.GetString();
+                                    int? best_lap_time_in_ms = bestLapTime.TryGetInt32(out int lapTime) ? lapTime : null;
+                                    int? total_race_time = totalRaceTime.TryGetInt32(out int raceTime) ? raceTime : null;
+                                    int? conditional = best_lap_time_in_ms != null ? best_lap_time_in_ms : total_race_time;
+                                    string team_id = teamId.GetString();
+
+                                    string line = $"{vehicle_name};{conditional};{team_id}";
+                                    writer.WriteLine(line);
+                                }
+                                else
+                                {
+                                    Dispatcher.Invoke(() =>
+                                    {
+                                        AddLog("", "", "One or more properties are missing in the JSON object.");
+                                    });
+                                }
+                            }
+                        }
+                        Dispatcher.Invoke(() =>
+                        {
+                            AddLog("", $"JSON array saved to {Path.Combine(storagePaths.CarsFolderPath, $"{storagePaths.CarFileName}.txt")}", "");
+                        });
+
+                    }
+                    else
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            AddLog("", "", "JSON information is not an array.");
+                        });
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        AddLog("", "", $"Error saving JSON to file: {ex.Message}");
+                    });
+                }
+            }
+            else
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    AddLog("", "", "Storage folder path is not specified.");
+                });
             }
         }
 
@@ -184,17 +361,29 @@ namespace WebsocketApp
                                 writer.WriteLine(line);
                             }
                         }
+                        Dispatcher.Invoke(() =>
+                        {
+                            // AddLog("", $"JSON array saved to {Path.Combine(storagePaths.CarsFolderPath, $"{storagePaths.CarFileName}.txt")}", "");
+                        });
 
-                        AddLog("", $"JSON array saved to {Path.Combine(storagePaths.CarsFolderPath, $"{storagePaths.CarFileName}.txt")}", "");
+                        
                     }
                     else
                     {
-                        AddLog("", "", "JSON information is not an array.");
+                        Dispatcher.Invoke(() =>
+                        {
+                           //  AddLog("", "", "JSON information is not an array.");
+                        });
+                        
                     }
                 }
                 catch (Exception ex)
                 {
-                    AddLog("", "", $"Error saving JSON to file: {ex.Message}");
+                    Dispatcher.Invoke(() =>
+                    {
+                       //  AddLog("", "", $"Error saving JSON to file: {ex.Message}");
+                    });
+                    
                 }
             }
             else
@@ -228,81 +417,60 @@ namespace WebsocketApp
 
         private void InitializeSignalRConnection()
         {
+            var httpClientHandler = new HttpClientHandlerAdapter();
+
             hubConnection = new HubConnectionBuilder()
-                .WithUrl("https://localhost:7231/chatHub")
-                .Build();
-
-            hubConnectionOne = new HubConnectionBuilder()
-                .WithUrl("https://localhost:7231/jsonHub")
-                .Build();
-
-            hubConnection.On<JsonElement>("ReceiveMessage", (jsonKeys) =>
-            {
-                if (jsonKeys.TryGetProperty("key1", out var key1Property) &&
-                    jsonKeys.TryGetProperty("key2", out var key2Property))
+                .WithUrl("http://20.121.40.254:5101/SocketHub", options =>
                 {
-                    string key1 = key1Property.GetString();
-                    string key2 = key2Property.GetString();
+                    options.HttpMessageHandlerFactory = (message) => httpClientHandler;
+                })
+                .Build();
 
-                    if (!string.IsNullOrEmpty(key1) && !string.IsNullOrEmpty(key2))
+            AddLog("Conectando", "", "");
+
+            hubConnection.StartAsync().ContinueWith(task => {
+                if (task.IsFaulted)
+                {
+                    Dispatcher.Invoke(() =>
                     {
-                        string logMessage = $"User press {key1} + {key2}  1";
-
-                        var jsonInformation = $"{key1} + {key2}";
-
-                        Dispatcher.Invoke(() =>
-                        {
-                            SaveJsonKeyToFile(logMessage, jsonInformation);
-                        });
-                    }
-                    else if (string.IsNullOrEmpty(key1) && !string.IsNullOrEmpty(key2))
+                        AddLog("", "", $"Hub Connection Error: {task.Exception.GetBaseException()}");
+                    });
+                }
+                else
+                {
+                    Dispatcher.Invoke(() =>
                     {
-                        string logMessage = $"User press {key2}";
-
-                        var jsonInformation = $"{key2}";
-
-                        Dispatcher.Invoke(() =>
-                        {
-                            SaveJsonKeyToFile(logMessage, jsonInformation);
-                        });
-                    }
+                        AddLog("", "Hub Connection Established", "");
+                    });
                 }
             });
 
-            hubConnectionOne.On<JsonElement, string>("ReceiveJson", (JsonElement jsonInfo, string jsonString) =>
+            hubConnection.On<JsonElement>("SendPosition", (jsonKeys) =>
             {
+                int id = jsonKeys.GetProperty("id").GetInt32();
+                int carIndex = jsonKeys.GetProperty("carIndex").GetInt32();
+                string name = jsonKeys.GetProperty("name").GetString();
+
                 Dispatcher.Invoke(() =>
                 {
-                    SaveJsonToFile(jsonInfo);
-                    AddLog(jsonString, " - Save file drivers", "");
+                    AddLog($"Received position update for car {carIndex}. ID: {id}, Name: {name}", "", "");
                 });
             });
 
-            hubConnectionOne.On<JsonElement, string>("ReceiveJson1", (JsonElement json1Info, string jsonString) =>
+            hubConnection.On<JsonElement>("PilotsPoints", (jsonKeys) =>
             {
-                Dispatcher.Invoke(() =>
-                {
-                    SaveJson1ToFile(json1Info);
-                    AddLog(jsonString, " - Save file cars", "");
-                });
+                SaveJsonToFile(jsonKeys);
             });
 
-            hubConnectionOne.StartAsync();
-            hubConnection.StartAsync();
-        }
+            hubConnection.On<JsonElement>("Participants", (participant) =>
+            {
+                SaveParticipant(participant);
+            });
 
-        private async void StartHubConnectionAsync()
-        {
-            try
+            hubConnection.On<JsonElement>("FinalClassification", (finalClassification) =>
             {
-                await hubConnection.StartAsync();
-                await hubConnectionOne.StartAsync();
-                AddLog("Connection started.", "", "");
-            }
-            catch (Exception ex)
-            {
-                AddLog("", "", $"Error starting connection: {ex.Message}");
-            }
+                SaveFinalClassification(finalClassification);
+            });
         }
 
         private void AddLog(string log, string logMessage, string logError)
@@ -353,8 +521,10 @@ namespace WebsocketApp
                 await hubConnection.StopAsync();
             }
 
+            AddLog("Intentando reconectando", "", "");
+
             // Inicia la reconexión
-            StartHubConnectionAsync();
+            InitializeSignalRConnection();
         }
 
     }

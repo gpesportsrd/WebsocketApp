@@ -74,7 +74,7 @@
                 GotFocus="txtNickname_GotFocus" LostFocus="txtNickname_LostFocus" Cursor="IBeam" >Agrega el Nickname</TextBox>
             <Button x:Name="btnMessage" Content="Guardar información de usuario" HorizontalAlignment="Center" Margin="0,338,0,0" VerticalAlignment="Center" Click="btnMessage_Click" Height="40" Width="230" FontFamily="Noto Sans Light" Style="{StaticResource RouteButtonStyle}" Background="#FF8C8C8C" Cursor="Hand" />
 
-            <Button x:Name="btnSelectRouteKey" Content="Seleccionar ruta key press" HorizontalAlignment="Left" Margin="45,160,514,0" VerticalAlignment="Center" Click="btnSelectRouteKey_Click" Height="40" Width="210" BorderThickness="1,1,1,1" Style="{StaticResource RouteButtonStyle}" FontFamily="Noto Sans Light" RenderTransformOrigin="0.5,0.5" FontWeight="Bold" FontSize="14" Cursor="Hand">
+            <Button x:Name="btnSelectRouteKey" Content="Ruta GarySwallowF12023RealNames" HorizontalAlignment="Left" Margin="45,160,514,0" VerticalAlignment="Center" Click="btnSelectRouteKey_Click" Height="40" Width="210" BorderThickness="1,1,1,1" Style="{StaticResource RouteButtonStyle}" FontFamily="Noto Sans Light" RenderTransformOrigin="0.5,0.5" FontWeight="Bold" FontSize="14" Cursor="Hand">
                 <Button.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform/>
@@ -85,7 +85,7 @@
                 </Button.RenderTransform>
             </Button>
 
-            <Button x:Name="btnSelectRouteCars" Content="Seleccionar ruta cars" HorizontalAlignment="Right" Margin="0,170,45,0" VerticalAlignment="Center" Click="btnSelectRouteCars_Click" Height="40" Width="210" BorderThickness="1,1,1,1" Style="{StaticResource RouteButtonStyle}" FontFamily="Noto Sans Light" RenderTransformOrigin="0.5,0.5" FontWeight="Bold" FontSize="14" Cursor="Hand">
+            <Button x:Name="btnSelectRouteCars" Content="Ruta RaceResultsStandings" HorizontalAlignment="Right" Margin="0,170,45,0" VerticalAlignment="Center" Click="btnSelectRouteCars_Click" Height="40" Width="210" BorderThickness="1,1,1,1" Style="{StaticResource RouteButtonStyle}" FontFamily="Noto Sans Light" RenderTransformOrigin="0.5,0.5" FontWeight="Bold" FontSize="14" Cursor="Hand">
                 <Button.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform/>
@@ -96,7 +96,7 @@
                 </Button.RenderTransform>
             </Button>
 
-            <Button x:Name="btnSelectRouteDrivers" Content="Seleccionar ruta drivers" HorizontalAlignment="Center" Margin="0,170,0,0" VerticalAlignment="Center" Click="btnSelectRouteDrivers_Click" Height="40" Width="210" BorderThickness="1,1,1,1" Style="{StaticResource RouteButtonStyle}" FontFamily="Noto Sans Light" RenderTransformOrigin="0.5,0.5" FontWeight="Bold" FontSize="14" Cursor="Hand">
+            <Button x:Name="btnSelectRouteDrivers" Content="Ruta ChampionshipStandings" HorizontalAlignment="Center" Margin="0,170,0,0" VerticalAlignment="Center" Click="btnSelectRouteDrivers_Click" Height="40" Width="210" BorderThickness="1,1,1,1" Style="{StaticResource RouteButtonStyle}" FontFamily="Noto Sans Light" RenderTransformOrigin="0.5,0.5" FontWeight="Bold" FontSize="14" Cursor="Hand">
                 <Button.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform/>
